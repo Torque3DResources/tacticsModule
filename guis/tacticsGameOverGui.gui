@@ -1,0 +1,83 @@
+//--- OBJECT WRITE BEGIN ---
+$guiContent = new GuiControl(tacticsGameOverGui) {
+   extent = "1280 720";
+   profile = "GuiDefaultProfile";
+   tooltipProfile = "GuiToolTipProfile";
+   isContainer = "1";
+
+   new GuiBitmapCtrl() {
+      bitmapAsset = "UI:inactive_overlay_image";
+      extent = "1280 720";
+      horizSizing = "width";
+      vertSizing = "height";
+      profile = "GuiDefaultProfile";
+      tooltipProfile = "GuiToolTipProfile";
+      isContainer = "1";
+
+      new GuiBitmapCtrl() {
+         bitmapAsset = "UI:inactive_overlay_image";
+         color = "122 116 58 255";
+         position = "240 187";
+         extent = "800 345";
+         horizSizing = "center";
+         vertSizing = "center";
+         profile = "GuiDefaultProfile";
+         tooltipProfile = "GuiToolTipProfile";
+         isContainer = "1";
+
+         new GuiTextCtrl() {
+            Text = "GAME OVER";
+            position = "272 16";
+            extent = "256 64";
+            horizSizing = "center";
+            profile = "GuiBigTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiTextCtrl(gameOverStateText) {
+            Text = "GAME STATE";
+            position = "272 102";
+            extent = "256 44";
+            horizSizing = "center";
+            profile = "GuiMenuButtonProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiTextCtrl(gameOverReasonText) {
+            Text = "GAME OVER REASON";
+            position = "144 155";
+            extent = "512 44";
+            horizSizing = "center";
+            profile = "GuiMenuButtonProfile";
+            tooltipProfile = "GuiMenuButtonProfile";
+         };
+         new GuiBitmapCtrl() {
+            bitmapAsset = "UI:background_image";
+            color = "150 150 150 255";
+            position = "330 231";
+            extent = "128 64";
+            profile = "GuiDefaultProfile";
+            tooltipProfile = "GuiToolTipProfile";
+            isContainer = "1";
+
+            new GuiBitmapCtrl() {
+               bitmapAsset = "UI:background_image";
+               color = "42 84 94 255";
+               position = "4 4";
+               extent = "120 56";
+               profile = "GuiDefaultProfile";
+               tooltipProfile = "GuiToolTipProfile";
+               isContainer = "1";
+
+               new GuiButtonCtrl() {
+                  Text = "Main Menu";
+                  extent = "120 56";
+                  horizSizing = "center";
+                  profile = "GuiMenuButtonProfile";
+                  command = "disconnect();";
+                  tooltipProfile = "GuiToolTipProfile";
+               };
+            };
+         };
+      };
+   };
+};
+//--- OBJECT WRITE END ---

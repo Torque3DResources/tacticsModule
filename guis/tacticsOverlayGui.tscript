@@ -1,0 +1,76 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2012 GarageGames, LLC
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// PlayGui is the main TSControl through which the game is viewed.
+// The PlayGui also contains the hud controls.
+//-----------------------------------------------------------------------------
+
+function tacticsGameMode::Playgui_onWake(%this)
+{
+   echo("tacticsGameMode::Playgui_onWake");
+   
+   //get rid of this thing so we can have the canvas to ourself
+   Canvas.popDialog(DamageGuiOverlay);
+   
+   //get rid of the standard FPSPlayer keymap too
+   //we will keep ExampleMoveMap if it has been loaded, but only as a backup
+   if(isObject("playerKeyMap"))
+      playerKeyMap.pop();
+      
+   tacticsMoveMap.push();
+   
+   //display the tactics StartUp file
+   Canvas.pushDialog(tacticsStartGui);
+}
+
+function tacticsGameMode::Playgui_onSleep(%this)
+{
+   tacticsMoveMap.pop();
+   Canvas.popDialog(tacticsOverlayGui);
+   Canvas.popDialog(tacticsStartGui);
+   Canvas.popDialog(tacticsGameOverGui);
+}
+
+function tacticsGameMode::Playgui_clearHud( %this )
+{
+    Canvas.popDialog(tacticsOverlayGui);
+}
+
+function Playgui::onMouseDown(%this, %screenPos, %worldPos, %vector)
+{
+   echo("tacticsGameMode::Playgui_onMouseDown");
+   //as we don't know locally what the state of the turn is -
+   //(we do really, it's a singlePlayer experience but we are not cutting corners)
+   //we need to send this data to the server and let the game sort it out
+   
+   commandToServer('onClientMouseDown', %worldPos, %vector);
+}
+
+function Playgui::onRightMouseDown(%this, %screenPos, %worldPos, %vector)
+{
+   echo("tacticsGameMode::Playgui_onRightMouseDown - toggle cursor");
+   
+   //let the server decide whether we can toggle the cursor on or off
+   //to prevent client input disrupting game turns
+   commandToServer('ServerToggleCursor');
+}

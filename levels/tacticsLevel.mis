@@ -1,0 +1,468 @@
+//--- OBJECT WRITE BEGIN ---
+new Scene(tacticsLevel) {
+   isEditing = "1";
+      enabled = "1";
+
+   new LevelInfo(theLevelInfo) {
+      FogColor = "0.6 0.6 0.7 1";
+      fogDensityOffset = "700";
+      canvasClearColor = "0 0 0 255";
+      soundAmbience = "AudioAmbienceDefault";
+         enabled = "1";
+   };
+   new ScatterSky(DynamicSky) {
+      sunScale = "0.991102 0.921582 0.83077 1";
+      zOffset = "-3000";
+      azimuth = "25";
+      moonMatAsset = "Core_Rendering:moon_wglow";
+      useNightCubemap = "1";
+      nightCubemap = "nightCubemap";
+      logWeight = "0.9";
+         mieScattering = "0.0045";
+   };
+   new CloudLayer(SkyClouds) {
+      textureAsset = "Core_Rendering:clouds_normal_displacement_image";
+      coverage = "0.25";
+      windSpeed = "0.5";
+      height = "6";
+   };
+   new Skylight(SkyAmbient) {
+      persistentId = "289ad401-3140-11ed-aae8-c0cb519281fc";
+         reflectionPath = "tools/levels/DefaultEditorLevel/probes/";
+   };
+   new GroundPlane() {
+      scaleU = "32";
+      scaleV = "32";
+      MaterialAsset = "Prototyping:FloorGray";
+         enabled = "1";
+         position = "0 0 0";
+         rotation = "1 0 0 0";
+         scale = "1 1 1";
+   };
+   new TSStatic() {
+      ShapeAsset = "tacticsModule:tacticsmaze_shape";
+      collisionType = "Visible Mesh";
+      decalType = "Visible Mesh";
+      position = "41.5609 82.0624 0";
+   };
+   new TSStatic() {
+      ShapeAsset = "Prototyping:colorCalibrationCard_shape";
+      position = "70.2492 59.6102 -1.90735e-06";
+      rotation = "0 0 -1 89.6909";
+      scale = "2 2 1";
+   };
+   new SimGroup(CameraSpawnPoints) {
+
+      new SpawnSphere(camSpawnMarker) {
+         spawnClass = "Camera";
+         spawnDatablock = "tacticsCam";
+         spawnScript = "0";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "88.0607 52.2877 3.93256";
+         canSaveDynamicFields = "0";
+      };
+   };
+   new SimGroup(trigs) {
+
+      new Trigger(trigStart) {
+         TrippedBy = "$TypeMasks::PlayerObjectType | $TypeMasks::AIObjectType";
+         enterCommand = "echo(%this @ \" trigStart onEnter obj \" @ %obj); \nif(%this.disableTrig != 1 && triggerTestPlayerTeam(%obj)) \n{echo(\"trigStart tripped\"); %this.disableTrig =1; activateTriggerStart(%this, %obj);}\n";
+         dataBlock = "DefaultTrigger";
+         position = "87.9741 63.5843 0";
+         scale = "16 12 4";
+            disableTrig = "0";
+      };
+      new Trigger(trigEnd) {
+         TrippedBy = "$TypeMasks::PlayerObjectType | $TypeMasks::AIObjectType";
+         enterCommand = "echo(%this @ \" trigStart onEnter obj \" @ %obj); \nif(%this.disableTrig != 1 && triggerTestPlayerTeam(%obj)) \n{echo(\"trigEnd tripped\"); %this.disableTrig =1; activateTriggerEnd(%this, %obj);}\n";
+         dataBlock = "DefaultTrigger";
+         position = "70.3353 59.5265 0";
+         scale = "8 12 4";
+      };
+      new Trigger(trig1) {
+         TrippedBy = "$TypeMasks::PlayerObjectType | $TypeMasks::AIObjectType";
+         enterCommand = "if(%this.disableTrig != 1 && %obj.team == 1) activateTrigger1(%this, %obj);";
+         dataBlock = "DefaultTrigger";
+         position = "61.3463 77.2193 0";
+         scale = "8 12 4";
+      };
+      new Trigger(trig2) {
+         TrippedBy = "$TypeMasks::PlayerObjectType | $TypeMasks::AIObjectType";
+         enterCommand = "if(%this.disableTrig != 1 && %obj.team == 1) activateTrigger2(%this, %obj);";
+         dataBlock = "DefaultTrigger";
+         position = "19.8027 78.2278 0";
+         scale = "8 12 4";
+      };
+      new Trigger(trig3) {
+         TrippedBy = "$TypeMasks::PlayerObjectType | $TypeMasks::AIObjectType";
+         enterCommand = "if(%this.disableTrig != 1 && %obj.team == 1) activateTrigger3(%this, %obj);";
+         dataBlock = "DefaultTrigger";
+         position = "15.0854 106.268 0";
+         scale = "18 12 4";
+      };
+      new Trigger(trig4) {
+         TrippedBy = "$TypeMasks::PlayerObjectType | $TypeMasks::AIObjectType";
+         enterCommand = "if(%this.disableTrig != 1 && %obj.team == 1) activateTrigger4(%this, %obj);";
+         dataBlock = "DefaultTrigger";
+         position = "52.5879 92.0772 0";
+         scale = "8 12 4";
+      };
+      new Trigger(trig5) {
+         TrippedBy = "$TypeMasks::PlayerObjectType | $TypeMasks::AIObjectType";
+         enterCommand = "if(%this.disableTrig != 1 && %obj.team == 1) activateTrigger5(%this, %obj);";
+         dataBlock = "DefaultTrigger";
+         position = "61.0963 114.424 0";
+         scale = "20 12 4";
+      };
+      new Trigger(trig6) {
+         TrippedBy = "$TypeMasks::PlayerObjectType | $TypeMasks::AIObjectType";
+         enterCommand = "if(%this.disableTrig != 1 && %obj.team == 1) activateTrigger6(%this, %obj);";
+         dataBlock = "DefaultTrigger";
+         position = "7.65591 130.094 0";
+         scale = "8 16 4";
+      };
+      new Trigger(trig7) {
+         TrippedBy = "$TypeMasks::PlayerObjectType | $TypeMasks::AIObjectType";
+         enterCommand = "if(%this.disableTrig != 1 && %obj.team == 1) activateTrigger7(%this, %obj);";
+         dataBlock = "DefaultTrigger";
+         position = "-3.05824 84.939 0";
+         scale = "12 8 4";
+      };
+   };
+   new SimGroup(spawnsNodes) {
+
+      new SpawnSphere(spawn1) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=1;$spawnObject.tacticsEquip(1);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "84 57 1";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn2) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=1;$spawnObject.tacticsEquip(1);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "88 57 1";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn3) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=1;$spawnObject.tacticsEquip(1);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "92 57 1";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn4) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2;$spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "48.8986 74.3767 1";
+         rotation = "0 0 1 89.1871";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn5) {
+         spawnClass = "aiplayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin); $spawnObject.moveTo=spawn4.getPosition();";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "16.4347 91.4182 1";
+         rotation = "0 0 1 178.329";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn6) {
+         spawnClass = "AiPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "36.5355 65.2227 1";
+         rotation = "0 0 1 29.7166";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn7) {
+         spawnClass = "Aiplayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "21.4571 106.675 0.734689";
+         rotation = "0 0 1 185.289";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn8) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "8.52821 114.926 1.10942";
+         rotation = "0 0 1 175.838";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn9) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin); $spawnObject.moveTo = spawn7.getPosition();";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "37.9007 107.32 1.01928";
+         rotation = "0 0 -1 65.9936";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn10) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "31.3997 91.3767 0.908337";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn11) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "36.2702 92.0119 1";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn12) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "60.2188 95.7584 1";
+         rotation = "0 0 -1 85.9596";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn13) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin); $spawnObject.moveTo=spawn7.getPosition();";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "67.6494 94.3155 1";
+         rotation = "0 0 -1 100.55";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn14) {
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "90.7263 88.0501 1";
+         rotation = "0.00105471 0.00105008 -0.999999 90.2522";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn15) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin); $spawnObject.moveTo=spawn14.getPosition();";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "89.9187 111.885 1";
+         rotation = "0 0 1 179.008";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn16) {
+         spawnClass = "AiPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "68.4151 114.935 0.988087";
+         rotation = "0 0 1 108.167";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn17) {
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "34.0624 135.568 1";
+         rotation = "0 0 1 113.455";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn18) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "15.2324 125.383 1";
+         rotation = "0 0 1 90.4614";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn19) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin); $spawnObject.moveTo=spawn17.getPosition();";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "-3.86498 114.992 1";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn20) {
+         spawnClass = "AiPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "0.104691 100.289 1";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn21) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "-4.84437 53.2276 0.586723";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn22) {
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "-0.775475 52.7503 1";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn23) {
+         spawnClass = "AiPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin); $spawnObject.moveTo=spawn22.getPosition();";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "31.1052 52.0186 1";
+         rotation = "0 0 -1 71.3591";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn24) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin); $spawnObject.moveTo=spawn20.getPosition();";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "23.1835 50.1131 1";
+         rotation = "0 0 -1 58.8818";
+         canSaveDynamicFields = "0";
+      };
+      new SpawnSphere(spawn25) {
+         spawnClass = "AIPlayer";
+         spawnDatablock = "TacticsPlayerData";
+         spawnScript = "$spawnObject.team=2; $spawnObject.setSkinName(%this.skin);";
+         spawnTransform = "1";
+         radius = "1";
+         sphereWeight = "1";
+         skin = "Yellow";
+         isAIControlled = "1";
+         dataBlock = "SpawnSphereMarker";
+         position = "63.7337 49.2635 1";
+         rotation = "0 0 -1 91.1771";
+         canSaveDynamicFields = "0";
+      };
+   };
+   new NavMesh(Nav) {
+      fileName = "data/tacticsModule/levels/tacticsLevel.nav";
+      maxPolysPerTile = "16384";
+      position = "50 90 -3";
+      scale = "120 120 10";
+   };
+};
+//--- OBJECT WRITE END ---

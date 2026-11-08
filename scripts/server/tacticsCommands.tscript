@@ -1,0 +1,421 @@
+//serverCmds and tactics gameplay
+
+//technically not a server command as the whole thing is singlePlayer, 
+//but we want to test that it is the player's turn and not the Ai/CPU turn
+function ServerCmdServerToggleCursor(%client)
+{
+   //first check if we should ignore this request
+   %game = tacticsGameMode;
+   %phase = %game.teamPhase;//1 for player, 2 for Ai/CPU team
+   if(%game.busy > 0 || %phase != 1)
+   {
+      echo("\c2ServerCmdServerToggleCursor client " @ %client @ " BUSY");
+      return;
+   }
+   
+   //we will take the request, if we have a moving team member we want them to stop
+   %player = %game.activePlayer;
+   if(isObject(%player))
+      if(%player.getSpeed() > 0)
+      {
+         %aiCon = %player.aiController;
+         if(%aiCon)
+            %aiCon.stop();
+         else
+            %player.stop();
+      }
+         
+   echo("ServerCmdServerToggleCursor client " @ %client);
+
+   //if we are down here allow the change
+   commandToClient(%client, 'ClientToggleCursor');
+}
+
+function ServerCmdOnClientMouseDown(%client, %worldPos, %vector)
+{
+   echo("\c1ServerCmdOnClientMouseDown client " @ %client @ "; worldPos " @ %worldPos @ "; vector " @ %vector);
+   //is it the client's turn? if not ignore this input
+   %game = tacticsGameMode;
+   %teamTurn = %game.teamPhase;
+   if(%teamTurn != 1)
+   {
+      echo("ServerCmdOnClientMouseDown receives input from client " @ %client @ " but it is not their turn - ignore!");
+      return;
+   }
+   
+   //get rid of the old decal if there is one
+      %decal = tacticsGameMode.decal;
+		if(%decal != -1)
+		{
+		   decalManagerRemoveDecal(%decal);
+		   tacticsGameMode.decal = -1;
+		}
+   
+   //otherwise decide what will happen, find the current controlled player
+   %player = tacticsGameMode.activePlayer;
+   if(%player)
+      if(%player.getState() !$="Dead")
+      {
+         %energy = %player.getEnergyLevel();
+         //echo("ServerCmdOnClientMouseDown energy " @ %energy);
+         commandToClient(%client, 'UpdateHudEnergy', %energy);
+         
+         if(%player.moveShootMode != 1)//move mode is 0, shoot mode is 1;
+         {
+            if(%energy > 0)
+            {
+               %doMove = 1;
+		         %searchMasks = $TypeMasks::TerrainObjectType | $TypeMasks::StaticObjectType;//only allow walkable objects for this tutorial
+            }
+         }
+         else
+         {
+            //we want to shoot
+            if(%player.shotThisTurn != 1)//only get a single magdump per turn
+            {
+               %doShoot = 1;
+		         %searchMasks = $TypeMasks::PlayerObjectType;//only hit players for this tutorial
+            }
+         }
+      }
+      else
+         commandToClient(%client, 'UpdateHudDataDisplay', 0, 0);
+   
+   if(%doMove == 1 || %doShoot == 1)
+   {   
+      //find end of search vector from the cursors point on screen
+		// make it no more 100 units from the camera
+		//anymore and have it miss
+		%ray = VectorScale(%vector, 100);
+		%end = VectorAdd(%worldPos, %ray);
+		
+		//default to hit
+		%notHit = 0;
+		
+		// search!
+		%scanTarg = ContainerRayCast( %worldPos, %end, %searchMasks, %player);
+   
+		// If the terrain or static object was found in the scan
+		if( %scanTarg != 0)
+		{
+			// Get the X,Y,Z position of where we clicked
+			%pos = getWords(%scanTarg, 1, 3);
+			
+			// Get the normal of the location we clicked on
+			%norm = getWords(%scanTarg, 4, 6);
+			
+			echo("rayCast from " @ %worldPos @ " hits pos " @ %pos @ "; norm " @ %norm);
+		}
+		else
+		   %noHit = 1;
+
+      %aiCon = %player.getAiController();
+      
+      if(%doMove == 1 && %noHit == 0)
+      {
+         if(isObject(%aiCon))
+            %path = %aiCon.setPathDestination(%pos);
+         else
+            %path = %player.setPathDestination(%pos);
+                  
+         %newDecal = decalManagerAddDecal(%pos, %norm, 0, 1, "TacticsDecalData", true );
+         tacticsGameMode.decal = %newDecal;
+         
+         //if we are down here allow the change
+         commandToClient(%client, 'ClientToggleCursor');
+      }
+      else if(%doShoot == 1 && %noHit == 0)
+      {
+         //shoot!
+         if(isObject(%aiCon))
+            %aiCon.setAimLocation(%pos);
+         else
+            %player.setAimLocation(%pos);
+            
+         %game.busy = 1;
+            
+         %player.shotThisTurn = 1;
+         %player.schedule(500, "magDump", 8, %client);//give it a little pause so we aim  
+         
+         //hide the hud whilst we shoot
+         commandToClient(%client, 'ShowDisplay', false, true);//showDisplay, show?, noWpn?  
+      }
+      else
+         echo("ServerCmdOnClientMouseDown for client " @ %client @ " noHit from raycast");
+   }
+   else
+      echo("ServerCmdOnClientMouseDown for client " @ %client @ " cannot move or shoot with playerObject " @ %player);
+}
+
+function serverCmdServerToggleMoveShootMode(%this, %mode)
+{
+   %player = tacticsGameMode.activePlayer;
+   if(%player)
+      %player.moveShootMode = %mode;
+   //else//it doesn't really matter
+}
+
+function serverCmdControlNextPlayer(%client, %bool)
+{
+   //this was player/client invoked so we expect the team list to be "team1List"
+   %game = tacticsGameMode;
+   %player = %game.activePlayer;
+   
+   //if we are moving to a new active Player, we want to clear the aim of the other team members and reset their losGood var
+   %teamList = team2List;//enemy Ai/CPU team
+   if(!isObject(%teamList))
+      error("scriptERROR serverCmdControlNextPlayer client " @ %client @ " cannot find enemy team list - expected team2List");
+   else
+   {
+      %enemyList = %teamList.getId();
+      %enemyNum = %enemyList.count();
+      if(%enemyNum > 0)
+         %game.resetPassiveTeamAim(%enemyList, %enemyNum);
+   }   
+
+   if(isObject(%player))
+   {
+      %player.clearAim();//don't keep looking at enemies from the passive Phase
+      %list = %player.teamList;
+      %count = %list.count();//array.count(); simgroup/simset.getCount();
+      %index = %list.getIndexFromKey(%player.getId());//should be the id anyway but check
+      if(%index == -1)
+      {
+         error("scriptERROR serverCmdControlNextPlayer for client " @ %client @ " curPlayer " @ %player @ " not found on teamList " @ %list @ " - default to index 0");
+         %index = 0;
+      }
+      else
+      {
+         if(%bool == 1)
+            %index++;
+         else
+            %index--;
+            
+         if(%index == -1)
+            %index = %count - 1;
+         else if(%index >= %count)
+            %index = 0;
+      }
+   }
+   else
+   {
+      error("scriptERROR serverCmdControlNextPlayer for client " @ %client @ " gameMode has no curPlayer - default to team1List index 0");
+      %list = team1List;
+      %index = 0; 
+   }
+   
+   %obj = %list.getKey(%index);
+   
+   if(isObject(%obj))
+   {
+      %game.activePlayer = %obj;
+      if(%obj.getState() !$="Dead")
+      {
+         %obj.moveShootMode = 0;//move, not shoot
+         %hasShot = %obj.shotThisTurn;//one burst fire per turn
+            
+         //we now need to update everything the player can see
+         %health = 100 - (100 * %obj.getDamagePercent());//display it as percentage
+         %health = mFloor(%health);//no decimals please
+         %energy = %obj.getEnergyLevel();
+         %obj.clearAim();//don't keep looking at enemies from the passive Phase
+            
+         %wpn = %obj.getMountedImage(0);//notice hardcoded imageSlot
+         if(%wpn)
+            %preview = %wpn.item.previewImage;
+         else
+            %preview = "";
+               
+         commandToClient(%client, 'UpdateHudDataDisplay', %health, %energy, %preview, %hasShot);   
+      }
+      else
+         commandToClient(%client, 'UpdateHudDataDisplay', 0, 0, ""); 
+         
+      %trans = %obj.getTransform();
+      %posneg = getword(%trans, 5);
+      %deg = getword(%trans, 6);
+      if(%posneg < 0)
+         %deg = %deg - %deg - %deg;
+      %client.camera.setOrbitObject(%obj, "0.349 0 " @ %deg, 1, 5, 5, 0, "0 0 1", 0);//"0.523599 0 " @ %deg
+      //Camera::setOrbitObject(GameBase orbitObject, VectorF rotation, float minDistance, float maxDistance, float initDistance, bool ownClientObject=false, Point3F offset=Point3F::Zero, bool locked=false)
+      //%client.camera.setOrbitObject(%obj, %obj.getForwardVector(), 1, 5, 5, 0, "0 0 1", 0);
+   }
+   else
+      error("scriptERROR serverCmdControlNextPlayer for client " @ %client @ " teamList " @ %list @ " fails to find key/obj at index " @ %index); 
+}
+
+function serverCmdEndPlayerTurn(%client)
+{
+   //the client has ended the player phase, now comes the enemy phase
+   %game = tacticsGameMode;
+   %game.teamPhase = 2;//1 for player, 2 for Ai/CPU team
+   
+   //remove move marker decal if it still exists
+   %decal = %game.decal;
+   if(%decal != -1)
+   {
+      decalManagerRemoveDecal(%decal);
+      tacticsGameMode.decal = -1;//reset!
+   }
+   
+   //clean up the client's teamList and remove any deceased playerObjects
+   //NOTE: this is a safety test as they should have been taken off the team list array via PlayerData::onDisabled
+   if(!isObject(team1List))
+      error("scriptERROR serverCmdEndPlayerTurn for client " @ %client @ " no team list for player team 1 found!");
+   else
+   {
+      %playerTeam = team1List.getId();
+      %playerCount = %playerTeam.count();//array.count(); simgroup/simset.getCount();
+      
+      //retest
+      %playerCount = %playerTeam.count();//array.count(); simgroup/simset.getCount();
+      if(%playerCount < 1)
+      {
+         echo("\c2serverCmdEndPlayerTurn client " @ %client @ " team1List is empty! Player defeated!");
+         
+         //tell the client to display the game over screen
+         %result = "Defeat!";
+         messageClient(%client, 'MsgGameOver', '\c3GAME OVER - Player %1', %result);
+         
+         %reason = "All Team Mates Killed! RIP";
+         messageClient(%client, 'MsgGameOver', '\c3GAME OVER - Player %1', %result);
+
+         commandToClient(%client, 'TacticsDemoGameOver', %result, %reason);
+         return;
+      }
+      else
+         %game.resetPassiveTeamVars(%playerTeam, %playerCount);//get us ready for the next phase
+   }
+   
+   //let the player/client know that we are starting the game!
+   %faction = "Enemy";
+   messageAll('MsgTurnPhase', '\c3Turn %1: %2 Phase', %game.curTurn, %faction);
+   
+   //this was player/client invoked so we expect the enemy team list to be "team2List"
+   if(!isObject(team2List))
+      error("scriptERROR serverCmdEndPlayerTurn for client " @ %client @ " no team list for enemy team 2 found!");
+   else
+   {
+      %list = team2List.getId();
+      %count = %list.count();//array.count(); simgroup/simset.getCount();
+      
+      if(%count < 1)
+      {
+         //have a little pause and then start the next turn with Player Phase
+         %game.schedule(2000, "startNewTurn", %client, %playerTeam);
+      }
+      else
+      {
+         //iterate through the enemy list and have each AiPlayer do their thing
+         %game.resetPassiveTeamVars(%list, %count);
+         
+         //we have nowhere to go ... can't shoot ... better end our player phase
+         //give it a little wait so we don't flick through the team too fast and give time to let Ai reload
+         %game.schedule(4000, "controlNextAiPlayer", %list, 0);
+      }         
+   }
+}
+
+//when the Ai/CPU team move we want the camera to track them from the nearest friendly playerObj that has a view
+//note this is not a true tracking camera as it only updates when the enemy player moves with their loopPlayerMove function
+function trackPlayerObject(%client, %viewer, %tgt)
+{
+   if(isObject(%client) && isObject(%viewer) && isObject(%tgt))
+   {
+      %viewPos = %viewer.getTransform();
+      %tgtPos = %tgt.getTransform();
+      
+      %vector = pointToXYPosDegree(%viewPos, %tgtPos);
+      //%vector = pointToPos(%viewPos, %tgtPos);
+      %posneg = getword(%vector, 2);
+      %deg = getword(%vector, 3);
+      if(%posneg == -1)
+         %deg = %deg - %deg - %deg;
+      
+      %rot = mDegToRad(%deg);
+      %client.camera.setOrbitObject(%viewer, "0.349 0 " @ %rot, 0, 3.0, 3.0, 0, "0 0 1", 0);
+   }
+   else
+      error("scriptERROR trackPlayerObject is missing something! client " @ %client @ "; viewerObj " @ %viewer @ "; tgtObj " @ %tgt);
+}
+
+function pointToXYPosDegree(%posOne, %posTwo)
+{
+   %vec = VectorSub(%posOne, %posTwo);
+   //get the angle
+   %rotAngleZ = mATan( firstWord(%vec), getWord(%vec, 1) );
+   //add pi to the angle
+   %rotAngleZ += 3.14159;
+
+   //make this rotation a proper torque game value, anything more than 240
+   // degrees is negative
+   if(%rotAngleZ > 4.18879)//yorks you don't actually need this but if it ain't broke don't fix it
+   {
+      //the rotation scale is seldom negative, instead make the axis value negative
+      %modifier = -1;
+      //subtract 2pi from the value, then make sure its positive
+      %rotAngleZ = mAbs(%rotAngleZ - 6.28319);
+      //sigh, if only this were all true
+   }
+   else
+      %modifier = 1;
+
+   //assemble the rotation and send it back
+ //  return "0 0" SPC %modifier SPC %rotAngleZ;//yorks out if you don't want radians - put back in if you do!
+ 
+	%rotAngleZ = mRadToDeg(%rotAngleZ);//yorks in - for returning a degree angle, take out if you want radians
+	
+  return "0 0" SPC %modifier SPC %rotAngleZ;
+}
+
+function pointToPos(%posOne, %posTwo)
+{
+   //sub the two positions so we get a vector pointing from the origin in the
+   // direction we want our object to face
+   %vec = VectorSub(%posTwo, %posOne);
+
+   // pull the values out of the vector
+   %x = firstWord(%vec);
+   %y = getWord(%vec, 1);
+   %z = getWord(%vec, 2);
+
+   //this finds the distance from origin to our point
+   %len = vectorLen(%vec);
+
+   //---------X-----------------
+   //given the rise and length of our vector this will give us the angle in radians
+   %rotAngleX = mATan(%z, %len);
+
+   //---------Z-----------------
+   //get the angle for the z axis
+   %rotAngleZ = mATan(%x, %y);
+
+   //create 2 matrices, one for the z rotation, the other for the x rotation
+   %matrix = MatrixCreateFromEuler("0 0" SPC %rotAngleZ * -1);
+   %matrix2 = MatrixCreateFromEuler(%rotAngleX SPC "0 0");
+
+   //now multiply them together so we end up with the rotation we want
+   %finalMat = MatrixMultiply(%matrix, %matrix2);
+   //we're done, send the proper numbers back
+   return getWords(%finalMat, 3, 6);
+}
+
+function shapebase::getVectorTo(%this, %pos)
+{ return VectorSub(%pos, %this.getPosition()); }
+
+function shapebase::getAngleTo(%this, %pos)
+{ return shapebase::getAngle(%this.getVectorTo(%pos), %this.getEyeVector()); }
+
+// Return angle between two vectors
+function shapebase::getAngle(%vec1, %vec2)
+{
+  %vec1n = VectorNormalize(%vec1);
+  %vec2n = VectorNormalize(%vec2);
+
+  %vdot = VectorDot(%vec1n, %vec2n);
+  %angle = mACos(%vdot);
+
+  // convert to degrees and return
+  %degangle = mRadToDeg(%angle);
+  return %degangle;
+}

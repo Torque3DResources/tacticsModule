@@ -1,0 +1,16 @@
+<MaterialAsset
+    AssetName="tacticsIcon_Mat"
+    materialDefinitionName="tacticsIcon_Mat"
+    VersionId="1">
+    <Material
+        Name="tacticsIcon_Mat"
+        mapTo="tacticsIcon_Mat"
+        castShadows="false"
+        alphaTest="true"
+        alphaRef="210">
+        <Material.Stages>
+            <Stages_beginarray
+                DiffuseMapAsset="@asset=tacticsModule:torqueIcon_image"/>
+        </Material.Stages>
+    </Material>
+</MaterialAsset>

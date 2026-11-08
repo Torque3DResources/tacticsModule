@@ -1,0 +1,10 @@
+
+datablock DecalData(TacticsDecalData)
+{
+   MaterialAsset = "tacticsModule:tacticsIcon_Mat";
+   lifeSpan = "0";
+   fadeTime = "0";
+   renderPriority = "1";
+   Material = "WarningMaterial";
+   size = "2";
+};

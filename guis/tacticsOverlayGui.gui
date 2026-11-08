@@ -1,0 +1,298 @@
+//--- OBJECT WRITE BEGIN ---
+$guiContent = new GuiContainer(tacticsOverlayGui) {
+   extent = "1280 720";
+   minExtent = "8 8";
+   profile = "GuiModelessDialogProfile";
+   tooltipProfile = "GuiToolTipProfile";
+      enabled = "1";
+      helpTag = "0";
+      noCursor = "0";
+
+   new GuiBitmapCtrl(centerPrintDlg) {
+      bitmapAsset = "UI:hudfill_image";
+      position = "365 32";
+      extent = "550 20";
+      minExtent = "8 8";
+      horizSizing = "center";
+      profile = "CenterPrintProfile";
+      visible = "0";
+      tooltipProfile = "GuiToolTipProfile";
+      hidden = "1";
+
+      new GuiMLTextCtrl(CenterPrintText) {
+         extent = "546 12";
+         minExtent = "8 8";
+         horizSizing = "center";
+         vertSizing = "center";
+         profile = "CenterPrintTextProfile";
+         tooltipProfile = "GuiToolTipProfile";
+      };
+   };
+   new GuiBitmapCtrl(bottomPrintDlg) {
+      bitmapAsset = "UI:hudfill_image";
+      position = "365 671";
+      extent = "550 20";
+      minExtent = "8 8";
+      horizSizing = "center";
+      vertSizing = "top";
+      profile = "CenterPrintProfile";
+      visible = "0";
+      tooltipProfile = "GuiToolTipProfile";
+      hidden = "1";
+
+      new GuiMLTextCtrl(BottomPrintText) {
+         extent = "546 12";
+         minExtent = "8 8";
+         horizSizing = "center";
+         vertSizing = "center";
+         profile = "CenterPrintTextProfile";
+         tooltipProfile = "GuiToolTipProfile";
+      };
+   };
+   new GuiBitmapCtrl(LagIcon) {
+      bitmapAsset = "UI:lagIcon_image";
+      position = "572 3";
+      extent = "32 32";
+      minExtent = "8 8";
+      profile = "GuiDefaultProfile";
+      visible = "0";
+      tooltipProfile = "GuiToolTipProfile";
+      hidden = "1";
+   };
+   new GuiBitmapCtrl(tacticsHudPlayerData) {
+      bitmapAsset = "UI:inactive_overlay_image";
+      position = "8 584";
+      extent = "632 128";
+      vertSizing = "top";
+      profile = "GuiDefaultProfile";
+      tooltipProfile = "GuiToolTipProfile";
+      isContainer = "1";
+
+      new GuiBitmapCtrl() {
+         bitmapAsset = "UI:inactive_overlay_image";
+         position = "8 8";
+         extent = "128 112";
+         profile = "GuiDefaultProfile";
+         tooltipProfile = "GuiToolTipProfile";
+         isContainer = "1";
+
+         new GuiTextCtrl() {
+            Text = "HEALTH";
+            extent = "128 32";
+            profile = "GuiMenuTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiTextCtrl(tacticsHudHealthText) {
+            Text = "0";
+            position = "0 16";
+            extent = "128 88";
+            profile = "GuiBigTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+      };
+      new GuiBitmapCtrl() {
+         bitmapAsset = "UI:inactive_overlay_image";
+         position = "144 8";
+         extent = "128 112";
+         profile = "GuiDefaultProfile";
+         tooltipProfile = "GuiToolTipProfile";
+         isContainer = "1";
+
+         new GuiTextCtrl() {
+            Text = "ENERGY";
+            extent = "128 32";
+            profile = "GuiMenuTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiTextCtrl(tacticsHudEnergyText) {
+            Text = "0";
+            position = "0 16";
+            extent = "128 88";
+            profile = "GuiBigTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+      };
+      new GuiBitmapCtrl() {
+         bitmapAsset = "UI:inactive_overlay_image";
+         position = "280 8";
+         extent = "128 112";
+         profile = "GuiDefaultProfile";
+         tooltipProfile = "GuiToolTipProfile";
+         isContainer = "1";
+
+         new GuiTextCtrl() {
+            Text = "WEAPON";
+            extent = "128 32";
+            profile = "GuiMenuTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiBitmapCtrl(tacticsHudWpnImage) {
+            bitmapAsset = "FPSEquipment:lurker_image";
+            position = "0 30";
+            extent = "128 72";
+            profile = "GuiDefaultProfile";
+            tooltipProfile = "GuiToolTipProfile";
+            isContainer = "1";
+         };
+         new GuiBitmapCtrl(tacticsHudNoWpnImage) {
+            bitmapAsset = "UI:Controller_Disconnected_image";
+            position = "0 30";
+            extent = "128 72";
+            profile = "GuiDefaultProfile";
+            visible = "0";
+            tooltipProfile = "GuiToolTipProfile";
+            isContainer = "1";
+            hidden = "1";
+         };
+      };
+      new GuiBitmapCtrl() {
+         bitmapAsset = "UI:inactive_overlay_image";
+         position = "424 16";
+         extent = "200 96";
+         profile = "GuiDefaultProfile";
+         tooltipProfile = "GuiToolTipProfile";
+         isContainer = "1";
+
+         new GuiTextCtrl(tacticsHudMoveShootText) {
+            Text = "MODE: MOVE";
+            extent = "200 32";
+            profile = "GuiMenuTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiBitmapCtrl() {
+            bitmapAsset = "UI:background_image";
+            color = "129 129 143 255";
+            position = "0 32";
+            extent = "96 64";
+            profile = "GuiDefaultProfile";
+            tooltipProfile = "GuiToolTipProfile";
+            isContainer = "1";
+
+            new GuiButtonCtrl() {
+               Text = "Move";
+               extent = "96 64";
+               profile = "GuiMenuButtonProfile";
+               command = "ToggleMoveShootMode(0);";
+               tooltipProfile = "GuiToolTipProfile";
+            };
+         };
+         new GuiBitmapCtrl() {
+            bitmapAsset = "UI:background_image";
+            color = "129 129 143 255";
+            position = "104 32";
+            extent = "96 64";
+            profile = "GuiDefaultProfile";
+            tooltipProfile = "GuiToolTipProfile";
+            isContainer = "1";
+
+            new GuiButtonCtrl() {
+               Text = "Shoot";
+               extent = "96 64";
+               profile = "GuiMenuButtonProfile";
+               command = "ToggleMoveShootMode(1);";
+               tooltipProfile = "GuiToolTipProfile";
+            };
+         };
+      };
+   };
+   new GuiBitmapCtrl(tacticsHudTurnData) {
+      bitmapAsset = "UI:inactive_overlay_image";
+      position = "820 584";
+      extent = "452 128";
+      horizSizing = "left";
+      vertSizing = "top";
+      profile = "GuiDefaultProfile";
+      tooltipProfile = "GuiToolTipProfile";
+      isContainer = "1";
+
+      new GuiBitmapCtrl() {
+         bitmapAsset = "UI:inactive_overlay_image";
+         position = "8 16";
+         extent = "200 96";
+         profile = "GuiDefaultProfile";
+         tooltipProfile = "GuiToolTipProfile";
+         isContainer = "1";
+
+         new GuiTextCtrl(tacticsHudTeamText) {
+            Text = "SOLDIERS: 3";
+            extent = "200 32";
+            profile = "GuiMenuTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiBitmapCtrl() {
+            bitmapAsset = "UI:background_image";
+            color = "129 129 143 255";
+            position = "0 32";
+            extent = "96 64";
+            profile = "GuiDefaultProfile";
+            tooltipProfile = "GuiToolTipProfile";
+            isContainer = "1";
+
+            new GuiButtonCtrl() {
+               Text = "Prev";
+               extent = "96 64";
+               profile = "GuiMenuButtonProfile";
+               command = "ClientNextPlayer(0);";
+               tooltipProfile = "GuiToolTipProfile";
+            };
+         };
+         new GuiBitmapCtrl() {
+            bitmapAsset = "UI:background_image";
+            color = "129 129 143 255";
+            position = "104 32";
+            extent = "96 64";
+            profile = "GuiDefaultProfile";
+            tooltipProfile = "GuiToolTipProfile";
+            isContainer = "1";
+
+            new GuiButtonCtrl() {
+               Text = "Next";
+               extent = "96 64";
+               profile = "GuiMenuButtonProfile";
+               command = "ClientNextPlayer(1);";
+               tooltipProfile = "GuiToolTipProfile";
+            };
+         };
+      };
+      new GuiBitmapCtrl() {
+         bitmapAsset = "UI:inactive_overlay_image";
+         position = "216 8";
+         extent = "96 112";
+         profile = "GuiDefaultProfile";
+         tooltipProfile = "GuiToolTipProfile";
+         isContainer = "1";
+
+         new GuiTextCtrl() {
+            Text = "TURNS";
+            extent = "96 32";
+            profile = "GuiMenuTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiTextCtrl(tacticsHudTurnsText) {
+            Text = "0 / 20";
+            position = "0 16";
+            extent = "96 88";
+            profile = "GuiBigTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+      };
+      new GuiBitmapCtrl() {
+         bitmapAsset = "UI:background_image";
+         color = "129 129 143 255";
+         position = "328 16";
+         extent = "116 96";
+         profile = "GuiDefaultProfile";
+         tooltipProfile = "GuiToolTipProfile";
+         isContainer = "1";
+
+         new GuiButtonCtrl() {
+            Text = "END TURN";
+            extent = "116 96";
+            profile = "GuiMenuButtonProfile";
+            command = "ClientEndTurn();";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+      };
+   };
+};
+//--- OBJECT WRITE END ---

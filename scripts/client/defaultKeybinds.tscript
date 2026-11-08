@@ -1,0 +1,34 @@
+if(!isObject( tacticsMoveMap ) )
+{
+   new ActionMap(tacticsMoveMap)
+   {
+      humanReadableName = "Tactics Game Mode Movement";
+   };
+}
+
+echo("tacticsGameMode defaultKeybinds");
+
+//------------------------------------------------------------------------------
+// Set up remappable entries - no remappable entries we are mouse control only
+//------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------
+// Non-remapable binds
+//------------------------------------------------------------------------------
+tacticsMoveMap.bind(keyboard, "ctrl h", hideHUDs);
+tacticsMoveMap.bind(keyboard, "alt p", doScreenShotHudless);
+
+//------------------------------------------------------------------------------
+// Movement Keys
+//------------------------------------------------------------------------------
+
+tacticsMoveMap.bind( mouse, xaxis, yaw );
+tacticsMoveMap.bind( mouse, yaxis, pitch );
+tacticsMoveMap.bind( mouse, button0, mouseButtonLeft);
+tacticsMoveMap.bind( mouse, button1, mouseButtonRight);
+
+//------------------------------------------------------------------------------
+// Misc.
+//------------------------------------------------------------------------------
+GlobalActionMap.bind(keyboard, "tilde", toggleConsole);

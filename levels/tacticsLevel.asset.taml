@@ -1,0 +1,13 @@
+<LevelAsset
+    AssetName="tacticsLevel"
+    AssetDescription="Default Level For TacticsModule Demo"
+    LevelFile="@assetFile=tacticsLevel.mis"
+    LevelName="tacticsLevel"
+    PostFXPresetFile="@assetFile=tacticsLevel.postfxpreset.tscript"
+    DecalsFile="@assetFile=tacticsLevel.mis.decals"
+    ForestFile="@assetFile=tacticsLevel.forest"
+    NavmeshFile="@assetFile=tacticsLevel.nav"
+    staticObjectAssetDependency0="@asset=Prototyping:FloorGray"
+    staticObjectAssetDependency1="@asset=tacticsModule:tacticsmaze_shape"
+    staticObjectAssetDependency2="@asset=Prototyping:colorCalibrationCard_shape"
+    VersionId="1"/>

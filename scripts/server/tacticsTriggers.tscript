@@ -1,0 +1,245 @@
+//this is for trigger tripping tests and trigger functions,
+
+//an overall test that it is the Player Team doing the tripping
+function triggerTestPlayerTeam(%obj)
+{
+   echo("trigger test against obj " @ %obj.getId()); 
+   if(%obj.team == 1)
+   {
+      echo("team is player team");
+      return true;
+   }
+   else
+      echo("team is NOT player team - ignore");
+      
+   return false;
+}
+
+//function for starting the game and spawning initial players called from
+function activateInitTacticsGame()
+{
+   %bot1 = spawn1.spawnObject("");
+   %bot2 = spawn2.spawnObject("");
+   %bot3 = spawn3.spawnObject("");
+   
+   %bot1.setName("ally1");
+   %bot2.setName("ally2");
+   %bot3.setName("ally3");
+   echo("activateInitGame spawns " @ %bot1 SPC %bot1.getName() SPC %bot2 SPC %bot2.getName() SPC %bot3 SPC %bot3.getName());
+   
+   //team is set on the spawnSphere spawnScript and tacticsEquip is also called from there
+   /*%bot1.tacticsEquip(%bot1.team);
+   %bot2.tacticsEquip(%bot2.team);
+   %bot3.tacticsEquip(%bot3.team);*/
+}
+
+//functions for tripping triggers in the level, %trig is trigger, %obj is ai/player object that tripped it
+
+function activateTriggerStart(%trig, %obj)
+{
+   //if we passed the trigger we may wish to deactivate it
+   if(isObject(%trig))
+      %trig.disableTrig = 1;
+      
+   //spawn an enemy - team, setSkinName and moveTo data are in the spawnSphere's spawnScript function
+   //but they could also be scripted here eg: %bot.team=2; %bot.setSkinName(Yellow);
+   
+   //we can take care of all other things here
+   %bot = spawn4.spawnObject("");//
+   echo("activateTriggerStart has spawned AiPlayer " @ %bot);
+   %bot.tacticsEquip(%bot.team);
+   %bot.setName("enemy1");
+}
+
+function activateTrigger1(%trig, %obj)
+{
+   //if we passed the trigger we may wish to deactivate it
+   if(isObject(%trig))
+      %trig.disableTrig = 1;
+      
+   //spawn an enemy - team, setSkinName and moveTo data are in the spawnSphere's spawnScript function
+   //but they could also be scripted here eg: %bot.team=2; %bot.setSkinName(Yellow);
+   
+   //we can take care of all other things here
+   %bot = spawn5.spawnObject("");//this guy will run in when it is his turn
+   echo("activateTrigger1 has spawned AiPlayer " @ %bot);
+   %bot.tacticsEquip(%bot.team);
+   %bot.setName("enemy2");
+   
+   %bot2 = spawn6.spawnObject("");//this guy will hide down the side and try to ambush
+   echo("activateTrigger1 has spawned AiPlayer " @ %bot2);
+   %bot2.tacticsEquip(%bot2.team);
+   %bot2.setName("enemy3");
+   
+   %bot3 = spawn8.spawnObject("");//this guy will hold position round the corner
+   echo("activateTrigger1 has spawned AiPlayer " @ %bot3);
+   %bot3.tacticsEquip(%bot3.team);
+   %bot3.setName("enemy4");
+   
+}
+
+function activateTrigger2(%trig, %obj)
+{
+//if we passed the trigger we may wish to deactivate it
+   if(isObject(%trig))
+      %trig.disableTrig = 1;
+      
+   //spawn an enemy - team, setSkinName and moveTo data are in the spawnSphere's spawnScript function
+   //but they could also be scripted here eg: %bot.team=2; %bot.setSkinName(Yellow);
+   
+   //we can take care of all other things here
+   %bot = spawn9.spawnObject("");//this guy will run in and take spawn7 position
+   echo("activateTrigger2 has spawned AiPlayer " @ %bot);
+   %bot.tacticsEquip(%bot.team);
+   %bot.setName("enemy5");
+   
+   //we can take care of all other things here
+   %bot2 = spawn10.spawnObject("");//this guy will hold position around the next corner
+   echo("activateTrigger2 has spawned AiPlayer " @ %bot2);
+   %bot2.tacticsEquip(%bot2.team);
+   %bot2.setName("enemy6");
+}
+
+function activateTrigger3(%trig, %obj)
+{
+   //if we passed the trigger we may wish to deactivate it
+   if(isObject(%trig))
+      %trig.disableTrig = 1;
+      
+   //spawn an enemy - team, setSkinName and moveTo data are in the spawnSphere's spawnScript function
+   //but they could also be scripted here eg: %bot.team=2; %bot.setSkinName(Yellow);
+   
+   //we can take care of all other things here
+   %bot = spawn11.spawnObject("");//this guy will hold position
+   echo("activateTrigger3 has spawned AiPlayer " @ %bot);
+   %bot.tacticsEquip(%bot.team);
+   %bot.setName("enemy7");
+   
+   //we can take care of all other things here
+   %bot2 = spawn12.spawnObject("");//this guy will hold position
+   echo("activateTrigger3 has spawned AiPlayer " @ %bot2);
+   %bot2.tacticsEquip(%bot2.team);
+   %bot2.setName("enemy8");
+
+   //we can take care of all other things here
+   %bot3 = spawn13.spawnObject("");//this guy will run down the corridor and take position spawn7
+   echo("activateTrigger3 has spawned AiPlayer " @ %bot3);
+   %bot3.tacticsEquip(%bot3.team);
+   %bot3.setName("enemy9");
+}
+
+function activateTrigger4(%trig, %obj)
+{
+   //if we passed the trigger we may wish to deactivate it
+   if(isObject(%trig))
+      %trig.disableTrig = 1;
+      
+   //spawn an enemy - team, setSkinName and moveTo data are in the spawnSphere's spawnScript function
+   //but they could also be scripted here eg: %bot.team=2; %bot.setSkinName(Yellow);
+   
+   //we can take care of all other things here
+   %bot = spawn15.spawnObject("");//this guy will run across to spawn14
+   echo("activateTrigger4 has spawned AiPlayer " @ %bot);
+   %bot.tacticsEquip(%bot.team);
+   %bot.setName("enemy10");
+   
+   //we can take care of all other things here
+   %bot2 = spawn16.spawnObject("");//this guy will hold position
+   echo("activateTrigger4 has spawned AiPlayer " @ %bot2);
+   %bot2.tacticsEquip(%bot2.team);
+   %bot2.setName("enemy11");
+}
+
+function activateTrigger5(%trig, %obj)
+{
+   //if we passed the trigger we may wish to deactivate it
+   if(isObject(%trig))
+      %trig.disableTrig = 1;
+      
+   //spawn an enemy - team, setSkinName and moveTo data are in the spawnSphere's spawnScript function
+   //but they could also be scripted here eg: %bot.team=2; %bot.setSkinName(Yellow);
+   
+   //we can take care of all other things here
+   %bot = spawn18.spawnObject("");//this guy will hold position
+   echo("activateTrigger5 has spawned AiPlayer " @ %bot);
+   %bot.tacticsEquip(%bot.team);
+   %bot.setName("enemy12");
+   
+   //we can take care of all other things here
+   %bot2 = spawn19.spawnObject("");//this guy will run to spawn17
+   echo("activateTrigger5 has spawned AiPlayer " @ %bot2);
+   %bot2.tacticsEquip(%bot2.team);
+   %bot2.setName("enemy13");   
+}
+
+function activateTrigger6(%trig, %obj)
+{
+   //if we passed the trigger we may wish to deactivate it
+   if(isObject(%trig))
+      %trig.disableTrig = 1;
+      
+   //spawn an enemy - team, setSkinName and moveTo data are in the spawnSphere's spawnScript function
+   //but they could also be scripted here eg: %bot.team=2; %bot.setSkinName(Yellow);
+   
+   //we can take care of all other things here
+   %bot = spawn20.spawnObject("");//this guy will hold position
+   echo("activateTrigger6 has spawned AiPlayer " @ %bot);
+   %bot.tacticsEquip(%bot.team);
+   %bot.setName("enemy14");
+   
+   //we can take care of all other things here
+   %bot2 = spawn21.spawnObject("");//this guy will hold position
+   echo("activateTrigger6 has spawned AiPlayer " @ %bot2);
+   %bot2.tacticsEquip(%bot2.team);
+   %bot2.setName("enemy15");
+}
+
+function activateTrigger7(%trig, %obj)
+{
+   //if we passed the trigger we may wish to deactivate it
+   if(isObject(%trig))
+      %trig.disableTrig = 1;
+      
+   //spawn an enemy - team, setSkinName and moveTo data are in the spawnSphere's spawnScript function
+   //but they could also be scripted here eg: %bot.team=2; %bot.setSkinName(Yellow);
+   
+   //we can take care of all other things here
+   %bot = spawn23.spawnObject("");//this guy will run across to spawn22
+   echo("activateTrigger7 has spawned AiPlayer " @ %bot);
+   %bot.tacticsEquip(%bot.team);
+   %bot.setName("enemy16");
+   
+   //we can take care of all other things here
+   %bot2 = spawn24.spawnObject("");//this guy will run down to spawn20
+   echo("activateTrigger7 has spawned AiPlayer " @ %bot2);
+   %bot2.tacticsEquip(%bot2.team);
+   %bot2.setName("enemy17");
+   
+   //we can take care of all other things here
+   %bot3 = spawn25.spawnObject("");//this guy will hold position at the end
+   echo("activateTrigger7 has spawned AiPlayer " @ %bot3);
+   %bot3.tacticsEquip(%bot3.team);
+   %bot3.setName("enemy18");
+}
+
+function activateTriggerEnd(%trig, %obj)
+{
+   //if we passed the trigger we may wish to deactivate it
+   if(isObject(%trig))
+      %trig.disableTrig = 1;
+      
+   //win! team1 wins if they get here
+   echo("\c1activateTriggerEnd successful - game ends in victory!");
+   
+   %client = %obj.teamClient;
+   if(!isObject(%client))
+      error("activateTriggerEnd has been activated by " @ %obj SPC %obj.getName() @ " but it has no teamClient!");
+   else
+   {
+      //tell the client to display the game over screen
+      %result = "Victory!";
+      messageClient(%client, 'MsgGameOver', '\c3GAME OVER - Player %1', %result);
+      
+      commandToClient(%client, 'TacticsDemoGameOver', "Victory!", "You Reached The Level Exit!");
+   }   
+}

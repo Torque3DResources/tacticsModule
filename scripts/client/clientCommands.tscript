@@ -1,0 +1,125 @@
+
+function clientCmdClientToggleCursor()
+{
+   echo("clientCmdClientToggleCursor allow cursor toggle");
+   if(Canvas.isCursorOn())
+      hideCursor();
+   else
+      showCursor();
+}
+
+function clientCmdShowDisplay(%bool, %noShoot)
+{
+   if(%bool)
+   {
+      tacticsHudPlayerData.setVisible(true);
+      tacticsHudTurnData.setVisible(true);
+   }
+   else
+   {
+      tacticsHudPlayerData.setVisible(false);
+      tacticsHudTurnData.setVisible(false);
+   }
+   
+   if(%noShoot)
+      tacticsHudNoWpnImage.setVisible(true);
+   else
+      tacticsHudNoWpnImage.setVisible(false);
+}
+
+function clientCmdUpdateHudDataDisplay(%health, %energy, %preview, %noWpn, %turn, %players)
+{
+   //if we are not displaying the HUD data we should be
+   tacticsHudPlayerData.setVisible(true);
+   tacticsHudTurnData.setVisible(true);
+      
+   if(%health != -1)
+      tacticsHudHealthText.setText(%health);
+      
+   if(%energy != -1)
+      tacticsHudEnergyText.setText(%energy);
+      
+   if(%preview $="" || detag(%preview) $="blank")
+      tacticsHudWpnImage.setVisible(false);
+   else
+   {
+      tacticsHudWpnImage.setVisible(true);
+      tacticsHudWpnImage.setBitmap(detag(%preview));
+   }
+      
+   if(%noWpn == 1)
+      tacticsHudNoWpnImage.setVisible(true);
+   else
+      tacticsHudNoWpnImage.setVisible(false);
+      
+   //reset to move mode incase we were displaying shoot mode
+   tacticsHudMoveShootText.setText("MODE: MOVE");
+   
+   if(%turn !$="")
+      tacticsHudTurnsText.setText(%turn);
+      
+   if(%players !$="")
+      tacticsHudTeamText.setText("SOLDIERS: " @ %players);
+}
+
+function clientCmdUpdateHudHealth(%val)
+{
+   if(%val < 0)
+      %val = 0;
+
+   tacticsHudHealthText.setText(%val);
+}
+
+function clientCmdUpdateHudEnergy(%val)
+{
+   //echo("clientCmdUpdateHudEnergy energy " @ %val);
+   if(%val < 0)
+      %val = 0;
+
+   tacticsHudEnergyText.setText(%val);
+}
+
+function clientCmdUpdateTeamHud(%val)
+{
+   tacticsHudTeamText.setText("SOLDIERS: " @ %val);
+}
+
+function ToggleMoveShootMode(%mode)//note not a clientCmd
+{
+   if(%mode == 1)
+      tacticsHudMoveShootText.setText("MODE: SHOOT");
+   else
+      tacticsHudMoveShootText.setText("MODE: MOVE");
+   commandToServer('ServerToggleMoveShootMode', %mode);
+}
+
+function ClientNextPlayer(%bool)
+{
+   //we will have to call the server and let them handle this
+   commandToServer('ControlNextPlayer', %bool);
+}
+
+function ClientEndTurn()
+{
+   //we will have to call the server and let them handle this
+   //but first hide the UI during the enemy phase
+   echo("ClientEndTurn");
+   
+   //show the cursor during the enemy phase but don't let the player do anything with it
+   if(Canvas.isCursorOn() == false)
+      showCursor();
+      
+   tacticsHudPlayerData.setVisible(false);
+   tacticsHudTurnData.setVisible(false);
+   commandToServer('EndPlayerTurn');
+}
+
+function clientCmdTacticsDemoGameOver(%state, %reason)
+{
+   Canvas.pushDialog(tacticsGameOverGui);
+   gameOverStateText.setText(%state);
+   gameOverReasonText.setText(%reason);
+   
+   if(Canvas.isCursorOn() == false)
+      showCursor();
+}

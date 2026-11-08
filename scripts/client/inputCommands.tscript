@@ -1,0 +1,52 @@
+
+//==============================================================================
+//tacticsGameMode is based on purely mouse driven input
+//==============================================================================
+
+function getMouseAdjustAmount(%val)
+{
+   // based on a default camera FOV of 90'
+   return(%val * ($cameraFov / 90) * 0.01) * $pref::Input::LinkMouseSensitivity;
+}
+
+function yaw(%val)
+{
+   %yawAdj = getMouseAdjustAmount(%val);
+   if(ServerConnection.isControlObjectRotDampedCamera())
+   {
+      // Clamp and scale
+      %yawAdj = mClamp(%yawAdj, -m2Pi()+0.01, m2Pi()-0.01);
+      %yawAdj *= 0.5;
+   }
+
+   $mvYaw += %yawAdj;
+}
+
+function pitch(%val)
+{
+   %pitchAdj = getMouseAdjustAmount(%val);
+   if(ServerConnection.isControlObjectRotDampedCamera())
+   {
+      // Clamp and scale
+      %pitchAdj = mClamp(%pitchAdj, -m2Pi()+0.01, m2Pi()-0.01);
+      %pitchAdj *= 0.5;
+   }
+
+   $mvPitch += %pitchAdj;
+}
+
+//--------------------
+//if the mouse buttons get input it's because the tacticsPlayGui has noCursor set true
+//otherwise input is via the tacticPlayGui screenSpace via onMouseDown/Up and onRightMouseDown/Up
+
+function mouseButtonLeft(%val)
+{
+   if(%val)
+      commandToServer('ServerToggleCursor');
+}
+
+function mouseButtonRight(%val)
+{
+   if(%val)
+      commandToServer('ServerToggleCursor');
+}

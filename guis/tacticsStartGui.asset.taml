@@ -1,0 +1,5 @@
+<GUIAsset
+    AssetName="tacticsStartGui"
+    ScriptFile="@assetFile=tacticsStartGui.tscript"
+    GUIFile="@assetFile=tacticsStartGui.gui"
+    VersionId="1"/>

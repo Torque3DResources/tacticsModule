@@ -1,0 +1,14 @@
+function tacticsGameOverGui::onWake(%this)
+{
+    Canvas.popDialog(tacticsOverlayGui);
+    
+    //make sure the client has a cursor
+    if(!Canvas.isCursorOn())
+      showCursor();
+}
+
+function tacticsGameOverGui::onSleep(%this)
+{
+   //when this is removed we return to the mainMenu anyway
+   //so tacticsOverlayGui/tacticsGameMode::Playgui_onSleep will cover everything
+}

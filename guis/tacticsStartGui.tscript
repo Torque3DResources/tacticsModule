@@ -1,0 +1,15 @@
+function tacticsStartGui::onWake(%this)
+{
+    //make sure the client has a cursor
+    if(!Canvas.isCursorOn())
+      showCursor();
+}
+
+function tacticsStartGui::onSleep(%this)
+{
+   //with the start mode over, enable the tacticsOverlayGui
+   tacticsMoveMap.push();
+   
+   //display the tacticsOverlay
+   Canvas.pushDialog(tacticsOverlayGui);
+}

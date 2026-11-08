@@ -1,0 +1,12 @@
+<ModuleDefinition
+    ModuleId="tacticsModule"
+    VersionId="1"
+    Group="Game"
+    ScriptFile="tacticsModule"
+    CreateFunction="onCreate"
+    DestroyFunction="onDestroy"
+	Dependencies="UI=1,FPSPlayer=1,FPSEquipment=1,inventorySystem=1,noticeSystem=1">
+    <DeclaredAssets
+        Extension="asset.taml"
+        Recurse="true"/>
+</ModuleDefinition>

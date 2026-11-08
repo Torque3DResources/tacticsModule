@@ -1,0 +1,11 @@
+<ImageAsset
+    AssetName="torqueIcon_image"
+    imageFile="@assetFile=@torqueIcon.png"
+    originalFilePath="data/tacticsModule/art/torqueIcon.png">
+    <ImageAsset.ImageMetadata>
+        <ImageInfo
+            ImageWidth="256"
+            ImageHeight="256"
+            ImageDepth="1"/>
+    </ImageAsset.ImageMetadata>
+</ImageAsset>

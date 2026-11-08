@@ -1,0 +1,5 @@
+<GUIAsset
+    AssetName="tacticsGameOverGui"
+    ScriptFile="@assetFile=tacticsGameOverGui.tscript"
+    GUIFile="@assetFile=tacticsGameOverGui.gui"
+    VersionId="1"/>

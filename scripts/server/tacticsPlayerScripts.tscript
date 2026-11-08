@@ -1,0 +1,769 @@
+//callbacks for the Ai/Player datablocks
+
+function PlayerData::onDisabled(%this, %obj, %state)
+{
+   // Release the main weapon trigger
+   %obj.setImageTrigger(0, false);
+
+   // Toss current mounted weapon and ammo if any
+   %item = %obj.getMountedImage($WeaponSlot).item;
+   if (isObject(%item))
+   {
+      %amount = %obj.getInventory(%item.image.ammo);
+
+      if (!%item.image.clip)
+         warn("No clip exists to throw for item ", %item);
+      if(%amount)
+         %obj.throw(%item.image.clip, 1);
+   }
+
+   // Toss out a health patch
+   %obj.tossPatch();
+
+   %obj.playDeathCry();
+   %obj.playDeathAnimation();
+
+   // Schedule corpse removal. Just keeping the place clean.
+   %obj.schedule($CorpseTimeoutValue - 1000, "startFade", 1000, 0, true);
+   %obj.schedule($CorpseTimeoutValue, "delete");
+   
+   %client = %obj.teamClient;
+   %name = %obj.getName();
+   
+   %game = tacticsGameMode;
+      
+      //remove the deceased from their team list
+      %teamList = %obj.teamList;
+      if(!isObject(%teamList))
+         error("scriptERROR PlayerData::onDisabled deceased playerObject " @ %obj SPC %name @ " has no teamList!");
+      else
+      {
+         echo("PlayerData::onDisabled deceased playerObject " @ %obj SPC %name @ " look for on teamList " @ %teamList SPC %teamList.getName());
+         %teamList.echo();
+          
+         %index = %teamList.getIndexFromKey(%obj);
+         if(%index == -1)
+            error("scriptERROR PlayerData::onDisabled deceased playerObject " @ %obj SPC %name @ " not found on teamList " @ %teamList SPC %teamList.getName());
+         else
+         {
+            %teamList.erase(%index);
+            
+            //if a client player has been killed inform the client
+            %client = %obj.teamClient;
+            if(%client)
+            {
+               %val = %teamList.count();//array.count(); simgroup/simset.getCount();
+
+               //update the hud if we are not in the passive phase and we are the activePlayer
+               if(%game.teamPhase != 2)
+                  if(%game.activePlayer == %obj)
+                     commandToClient(%client, 'UpdateHudDataDisplay', 0, 0, "", 0, "", %val);
+                  
+               messageClient(%client, 'MsgManDown', '\c3%1 - Man Down! Remaining Team Members %2', %name, %val);
+               
+               //check to see if the player/client team has been defeated
+               if(%teamList.count() < 1)
+               {
+                  //tell the client to display the game over screen
+                  %result = "Defeat!";
+                  messageClient(%client, 'MsgGameOver', '\c3GAME OVER - Player %1', %result);
+                  
+                  return;
+               }
+            }
+         }
+      }
+      
+   //if we are an Ai/CPU team member and it is the enemy team phase
+   //and we are the activePlayer we want to get the next player
+   if(!isObject(%client))
+   {
+      if(%game.teamPhase == 2)//1 for player, 2 for Ai/CPU team
+         if(%game.activePlayer == %obj)
+         {
+            echo("PlayerData::onDisabled " @ %this SPC %this.getName() @ " quit turn");
+            //give it a little wait so we don't flick through the team too fast
+            %obj.turnComplete = 1;//only for Ai/CPU team
+            %game.schedule(1000, "controlNextAiPlayer", %teamList, %obj);
+         }
+   }
+}
+
+function PlayerData::onDamage(%this, %obj, %delta)
+{
+   if (!isObject(%obj))
+      return;
+   
+   //echo("tacticsModule PlayerData::onDamage " @ %obj @ " delta " @ %delta);
+    
+   if(tacticsGameMode.activePlayer == %obj)
+   {
+      %client = %obj.teamClient;
+      if(%client)
+      {
+         %health = 100 - (100 * %obj.getDamagePercent());//display it as percentage
+         %health = mFloor(%health);//no decimals please
+         commandToClient(%client, 'UpdateHudHealth', %health);
+      }
+   }
+   
+   //we do not use PlayerData::onDisabled because it totally overwrites the function
+   //might as well let the stock damageModel system take care of that and do this all here
+   /*if(%obj.getState() $="Dead")//if(%obj.getDamageState() !$= "Enabled")
+   {
+      
+   }*/
+}
+
+function PlayerData::onPathSuccess(%this, %obj, %path)
+{
+   echo("PlayerData::onPathSuccess player " @ %obj SPC %obj.getName() @ " path " @ %path);
+   
+   //this will trigger the think routine for enemies to shoot at a moving target
+   %obj.startPlayerMove(%obj.teamClient);
+}
+
+function PlayerData::onPathFailed(%this, %obj)
+{
+   echo("PlayerData::onPathFailed player " @ %obj SPC %obj.getName() @ " pos " @ %obj.getPosition() @ " destination " @ %obj.getMoveDestination());
+   
+   //this will trigger the think routine for enemies to stop shooting at a moving target
+   %obj.stopPlayerMove(%obj.teamClient);
+}
+
+function PlayerData::onReachDestination(%this, %obj)
+{
+   echo("PlayerData::onReachDestination player " @ %obj SPC %obj.getName() @ " pos " @ %obj.getPosition());
+   
+   //if we are an Ai/CPU controlled team member, scrub our moveTo var
+   %obj.moveTo = "";
+   
+   //this will trigger the think routine for enemies to stop shooting at a moving target
+   %obj.stopPlayerMove(%obj.teamClient);
+}
+
+//==================================
+
+function PlayerData::onMoveStuck(%this,%obj)
+{
+   echo( %obj @ " PlayerData::onMoveStuck" );
+}
+
+function PlayerData::onTargetExitLOS(%this,%obj)
+{
+   echo( %obj @ " PlayerData::onTargetExitLOS" );
+   %obj.losGood = 0;
+}
+
+function PlayerData::onTargetEnterLOS(%this,%obj)
+{
+   echo( %obj @ " PlayerData::onTargetEnterLOS" );
+   %obj.losGood = 1;
+}
+
+function PlayerData::onEndOfPath(%this,%obj,%path)
+{
+   echo(%obj @ " PlayerData::onEndOfPath path " @ %path);
+   %obj.nextTask();
+}
+
+function PlayerData::onEndSequence(%this,%obj,%slot)
+{
+   echo(%obj @ " PlayerData::onEndSequence Sequence Done!");
+   %obj.stopThread(%slot);
+   %obj.nextTask();
+}
+
+//==============================================================================
+//functions for the Ai/Player objects
+//==============================================================================
+
+//spawning the player "stuff"
+
+function Player::tacticsEquip(%this, %team)
+{
+   //give them all the stuff
+   %data = %this.getDataBlock();
+   %item = %data.mainWeapon;
+   if(!isObject(%item))
+      error("scriptERROR Player::tacticsEquip " @ %this SPC %this.getName() @ " has no item for mainWeapon " @ %item @ " on datablock " @ %data);
+   else
+   {
+      %image = %item.image;
+      if(!isObject(%image))
+         error("scriptERROR Player::tacticsEquip " @ %this SPC %this.getName() @ " has no weaponImage for item " @ %item);
+      else
+      {
+         %clip = %image.clip;
+         if(!isObject(%clip))
+            error("scriptERROR Player::tacticsEquip " @ %this SPC %this.getName() @ " weaponImage " @ %image @ " for item " @ %item @ " has no clip");
+         
+         %ammo = %image.ammo;
+         if(!isObject(%ammo))
+            error("scriptERROR Player::tacticsEquip " @ %this SPC %this.getName() @ " weaponImage " @ %image @ " for item " @ %item @ " has no ammo");
+         
+         //%maxClip = %clip.maxInventory;
+         //%maxAmmo = %ammo.maxInventory;
+         
+         %this.setInventory(%item, 1);
+         %this.setInventory(%clip, %this.maxInventory(%clip));
+         %this.setInventory(%ammo, %this.maxInventory(%ammo));
+         %this.mountImage(%image, 0);
+      }
+   }
+   
+   if(%team == 1)
+   {
+      if(!isObject(team1List))
+         error("scriptERROR Player::tacticsEquip player " @ %this @ " team1List does not exist!");
+      else
+      {
+         %list1 = team1List.getId();
+         //check we are not already on it
+         %index = %list1.getIndexFromKey(%this);
+         if(%index == -1)
+            %list1.add(%this, 0);
+         else
+            error("scriptERROR Player::tacticsEquip player " @ %this @ " is already on team1List " @ %list1 @ " at index " @ %index);
+            
+         //give us the list so we can reference it later
+         %this.teamList = %list1;
+      }
+      
+      //this will be the player client if they have already connected
+      %team1Client = tacticsGameMode.team1Client;
+      %this.teamClient = %team1Client;
+         
+   }
+   else if(%team == 2)
+   {
+      if(!isObject(team2List))
+         error("scriptERROR Player::tacticsEquip player " @ %this @ " team2List does not exist!");
+      else
+      {
+         %list2 = team2List.getId();
+         //check we are not already on it
+         %index2 = %list2.getIndexFromKey(%this);
+         if(%index2 == -1)
+            %list2.add(%this, 0);
+         else
+            error("scriptERROR Player::tacticsEquip player " @ %this @ " is already on team2List " @ %list2 @ " at index " @ %index2);
+            
+         //give us the list so we can reference it later
+         %this.teamList = %list2;
+      }
+      
+      //this will be the AI/CPU and will be 0/false
+      %team2Client = tacticsGameMode.team2Client;
+      %this.teamClient = %team2Client;
+   }
+   else
+      error("scriptERROR Player::tacticsEquip player " @ %this @ " has unknown team value " @ %team);//this could be blank technically ...
+   
+   //add an AiController if we are not an Ai
+   //if we are not spawning an AIPlayer we need an AiController
+   //in this tactics module we only spawn AIPlayer class and so don't need this
+   if(%this.getClassName() $="Player")
+   {
+      %aiCon = %data.AIControllerData;
+      if(isObject(%aiCon))
+      {
+         %control = new AIController()
+         { 
+            ControllerData = %aiCon;
+         };
+         %this.setAIController(%control);
+         %this.aiController = %control;//so we can get it easily without constantly asking %player.getAiController();
+         MissionCleanup.add(%control);
+      }
+      else
+         error("scriptERROR Player::tacticsEquip player " @ %this @ " has no AiControllerData for datablock " @ %data SPC %data.getName());
+   }
+   else
+      %this.aiController = 0;
+      
+   //give the Ai/Player the basic vars for gameplay
+   %this.shotThisTurn = 0;//only get a single magdump per turn
+   %this.moveShootMode = 0;//move mode is 0, shoot mode is 1;
+   %this.turnComplete = 0;//only for Ai/CPU team
+   
+   //we need this set on the player so we know what is happening
+   //this is passed via the client setting the move/shoot toggle button
+   //and the result is serverCmd to the gameMode, then reset at turn start
+   //and clientCmd back to reset for the local client
+   
+   //set our energy level to maximum, do this at the start of each turn
+   %this.setEnergyLevel(%data.maxEnergy);
+}
+
+//------------------------------------------------------------------------------
+
+//we make sure the player loses an energy point and let the enemy have an opening shot
+//to stop start/stop move spam from crafty players
+function Player::startPlayerMove(%this, %client)
+{
+   //the player is off, deduct 1 energy and let every enemy team member shoot if they can see the target
+   %team = %this.team;
+   %energy = %this.getEnergyLevel();
+   %energy--;
+   %this.setEnergyLevel(%energy);
+   //echo("Player::startPlayerMove energy " @ %energy @ " for client " @ %client);
+   if(%client)
+      commandToClient(%client, 'UpdateHudEnergy', %energy);
+   
+   //let any enemy take a pot shot
+   if(%team == 1)
+      %teamList = "team2List";
+   else
+      %teamList = "team1List";
+      
+   if(isObject(%teamList))
+   {
+      %list = %teamList.getId();
+      %count = %list.count();
+      if(%count > 0)
+      {
+         for(%i=0; %i < %count; %i++) 
+         {
+            %tgt = %list.getKey(%i);
+            if(isObject(%tgt) && %tgt.getState() !$="Dead")
+            {
+               //check if we can see the moving player and let rip
+               //always attack on the first instance of moving
+               %aiCon = %this.aiController;
+               if(%aiCon)
+                  %aiCon.setAimObject(%this, "0 0 1.5");//aim for body mass center
+               else
+                  %tgt.setAimObject(%this, "0 0 1.5");//aim for body mass center
+               
+               //can we see the target?
+               //%los = %tgt.checkInLos(%this);
+               //echo("startPlayerMove checkInLos " @ %los); 
+               if(%tgt.losGood == 1)
+               {
+                  if(%aiCon)
+                     %aiCon.setImageTrigger(0, 1);
+                  else
+                     %tgt.setImageTrigger(0, 1);//take a shot
+               }
+            }
+         }
+      }
+   }
+   else
+      error("scriptERROR Player::startPlayerMove for client " @ %client @ " with active player " @ %this SPC %this.getName() @ " finds no hostile team list " @ %list);
+   
+   if(%energy < 1)
+      %this.stopPlayerMove(%client);
+   else
+      %this.moveLoop = %this.schedule(500, "loopPlayerMove", %list, %client);//pass the list so we don't have to keep getting it
+}
+
+function Player::loopPlayerMove(%this, %list, %client)//enemy team list
+{
+   %energy = %this.getEnergyLevel();
+   %energy--;
+   %this.setEnergyLevel(%energy);
+   //echo("Player::loopPlayerMove energy " @ %energy @ " for client " @ %client);
+   
+   //if this is a human team controlled playerObject update the client's HUD
+   if(%client)
+      commandToClient(%client, 'UpdateHudEnergy', %energy);
+
+   if(%this.getSpeed() > 0)
+   {
+      if(isObject(%list))
+      {
+         %count = %list.count();
+         if(%count > 0)
+         {
+            %enemyClient = 0;
+            
+            for(%i=0; %i < %count; %i++) 
+            {
+               %tgt = %list.getKey(%i);
+               if(!isObject(%enemyClient) && isObject(%tgt.teamClient))
+                  %enemyClient = %tgt.teamClient;
+               
+               if(isObject(%tgt) && %tgt.getState() !$="Dead")
+               {
+                  //check if we can see the moving player and let rip
+                  //don't spam shots fire once every 1.5 seconds
+                  %aiCon = %this.aiController;
+                  if(%aiCon)
+                     %aiCon.setAimObject(%this, "0 0 1.5");//aim for body mass center
+                  else
+                     %tgt.setAimObject(%this, "0 0 1.5");//aim for body mass center
+                     
+                  //can we see the target?
+                  //%los = %tgt.checkInLos(%this);
+                  //echo("loopPlayerMove checkInLos " @ %los); 
+                  if(%tgt.losGood == 1)
+                  {
+                     if(%aiCon)
+                        %aiCon.setImageTrigger(0, 1);
+                     else
+                        %tgt.setImageTrigger(0, 1);//take a shot
+                  }
+               }
+            }
+            
+            //if the client/player is in passive phase, we want the camera to look towards the active enemy
+            if(isObject(%enemyClient))
+               %this.getBestViewer(%enemyClient, %list, %count);
+         }
+      }
+      
+      if(%energy < 1)
+         %this.stopPlayerMove(%client);
+      else
+         %this.moveLoop = %this.schedule(500, "loopPlayerMove", %list, %client);//pass the list so we don't have to keep getting it
+   }
+   else
+      %this.stopPlayerMove(%client);
+}
+
+function Player::stopPlayerMove(%this, %client)
+{   
+   %aiCon = %this.aiController;
+   if(%aiCon)
+      %aiCon.stop();
+   else
+      %this.stop();
+
+   if(%this.moveLoop)
+   {
+      cancel(%this.moveLoop);
+      %this.moveLoop = 0;  
+   }
+   
+   %decal = tacticsGameMode.decal;
+   if(%decal != -1)
+   {
+      decalManagerRemoveDecal(%decal);
+      tacticsGameMode.decal = -1;//reset!
+   }
+   
+   //don't allow startStop moveScumming
+   //if this is a human team controlled playerObject update the client's HUD
+   if(%client)
+   {
+      %energy = %this.getEnergyLevel();
+      if(%energy > 0)
+      {
+         %energy--;
+         %this.setEnergyLevel(%energy);
+         commandToClient(%client, 'UpdateHudEnergy', %energy);
+      }
+   }
+   
+   //let any enemy take a pot shot, get the hostile teamList
+   %team = %this.team;
+   if(%team == 1)
+      %teamList = "team2List";
+   else
+      %teamList = "team1List";
+      
+   if(isObject(%teamList))
+   {
+      %list = %teamList.getId();
+      %count = %list.count();
+      if(%count > 0)
+      {
+         for(%i=0; %i < %count; %i++) 
+         {
+            %tgt = %list.getKey(%i);
+            if(isObject(%tgt) && %tgt.getState() !$="Dead")
+            {
+               //check if we can see the moving player and let rip
+               //always attack on the first instance of moving
+               %aiCon = %this.aiController;
+               if(%aiCon)
+                  %aiCon.setAimObject(%this, "0 0 1.5");//aim for body mass center
+               else
+                  %tgt.setAimObject(%this, "0 0 1.5");//aim for body mass center
+               
+               //can we see the target?
+               //%los = %tgt.checkInLos(%this);
+               //echo("stopPlayerMove checkInLos " @ %los); 
+               
+               if(%tgt.losGood == 1)
+               {
+                  if(%aiCon)
+                     %aiCon.schedule(200, "setImageTrigger", 0, 1);//take a shot with a minor hold to make sure we cleared the reload
+                  else
+                     %tgt.schedule(200, "setImageTrigger", 0, 1);//take a shot with a minor hold to make sure we cleared the reload
+               }
+            }
+         }
+      }
+   }
+   else
+      error("scriptERROR Player::stopPlayerMove for client " @ %client @ " with active player " @ %this SPC %this.getName() @ " finds no hostile team list " @ %list);
+   
+   //if we are human controlled and we have made it to the end of our path or run out of energy
+   // automatically give the client the cursor back instead of making them click to get it
+   if(isObject(%client))
+      commandToClient(%client, 'ClientToggleCursor');
+   else
+   {
+      //if we are an Ai/CPU team memeber check that we have not been killed during the move
+      //give a little time for bullets to hit if there are any in motion
+      if(!isObject(%client))
+         %this.schedule(3000, "testBrainDeath");
+   }
+}
+
+function Player::testBrainDeath(%this)
+{
+   //if we have been slain then the PlayerData::onDamage will take care of passing activity to the next team member
+   if(%this.getState() !$="Dead")
+      %this.activePlayerThink();
+}
+
+//get the nearest passive player from the teamList who can see the enemy movement
+//or literally the nearest player if no one has a clear LOS
+function Player::getBestViewer(%this, %client, %list, %count)
+{
+   echo("Player::getBestViewer " @ %this SPC %this.getName() @ " client " @ %client @ "; teamList " @ %list SPC %list.getName() @ " count " @ %count);
+   %tgt = 0;
+   %hasLos = false;
+   %dist = 999;
+   %searchMasks = $TypeMasks::TerrainObjectType | $TypeMasks::StaticObjectType;
+   %start = %this.getEyePoint();
+   
+   for(%i=0; %i < %count; %i++)
+   {
+      %obj = %list.getKey(%i);
+      if(!isObject(%obj))
+         error("scriptERROR Player::getBestViewer " @ %this SPC %this.getName() @ " enemy team list " @ %list @ " no playerObject at index " @ %i);
+      else
+      {
+         %end = %obj.getEyePoint();//so they better have one
+         %tempDist = VectorDist(%start, %end);
+         %scan = ContainerRayCast(%start, %end, %searchMasks, %this);
+         echo("Player::getBestViewer " @ %this SPC %this.getName() @ " scans for enemy playerObj " @ %obj @ " scan returns " @ %scan);
+         if(%scan)
+         {
+
+            //if no one has spotted then default to this playerObj
+            if(%tgt == 0)
+               %tgt = %obj;
+            else if(%hasLos == false && %tempDist < %dist)
+            {
+               //if no one has a clear view and our range is closer, default to this playerObj 
+               %tgt = %obj;
+               %dist = %tempDist;
+            }
+         }
+         else
+         {
+            //we have a direct view
+            if(%hasLos == false)
+            {
+               %hasLos = true;
+               %tgt = %obj;
+               %dist = %tempDist;
+            }
+            else if(%tempDist < %dist)
+            {
+               %tgt = %obj;
+               %dist = %tempDist;
+            }
+         }
+      }
+   }
+   
+   if(isObject(%tgt))
+      trackPlayerObject(%client, %tgt, %this);
+}
+
+//note we are not really mag dumping at all, just firing a few shots
+function Player::magDump(%this, %count, %client)
+{
+   %aiCon = %this.aiController;
+   if(%aiCon)
+      %aiCon.setImageTrigger(0, 1);
+   else
+      %this.setImageTrigger(0, 1);
+ 
+   %count--;
+   if(%count > 0)
+      %this.schedule(250, "magDump", %count, %client);
+   else
+   {
+      if(%aiCon)
+         %aiCon.clearAim();
+      else
+         %this.clearAim();
+      
+      //let things happen again
+      tacticsGameMode.busy = 0;
+      
+      if(%client)
+         commandToClient(%client, 'ShowDisplay', true, true);//showDisplay, show?, noWpn?
+      else
+      {
+         //we are Ai team,let them know we can continue  
+         %this.activePlayerThink();
+      }
+   }
+}
+
+//==============================================================================
+
+function Player::activePlayerThink(%this)
+{
+   echo("\c1Player::activePlayerThink " @ %this SPC %this.getName());
+   
+   //check that we are not deceased, if we are the PlayerData::onDisabled will take care of calling for the next activePlayer
+   if(%this.getState() $="Dead")
+   {
+      echo("\c2Player::activePlayerThink " @ %this SPC %this.getName() @ " abort we are deceased");
+      return;
+   }
+   
+   %game = tacticsGameMode;
+   
+   %aiCon = %this.aiController;
+   %teamAlly = %this.teamList;
+   %team = %this.team;
+   if(%team == 2)
+      %teamEnemy = team1List;
+   else if(%team == 1)//shouldn't be this is the client player team
+      %teamEnemy = team2List;
+   else
+      error("scriptERROR Player::activePlayerThink " @ %this SPC %this.getName() @ " has unknown team " @ %team);
+      
+   %count = %teamEnemy.count();//array.count(); simgroup/simset.getCount();
+   
+   if(%count < 1)
+   {
+      //client player has lost, skip through any remaining Ai/CPU team players
+      // and let the client know about their defeat
+      %teamAlly.empty();
+      %game.schedule(1000, "controlNextAiPlayer", %teamAlly);//, %this);
+      return;      
+   }
+   
+   //can we see an enemy?
+   %hasShot = %this.shotThisTurn;
+   if(%hasShot == false)
+   {
+      echo("Player::activePlayerThink " @ %this SPC %this.getName() @ " can shoot");
+      %tgt = %this.getClosestEnemyInLOS(%teamEnemy, %count);
+      if(isObject(%tgt))
+      {
+         echo("Player::activePlayerThink " @ %this SPC %this.getName() @ " wants to attack enemy target " @ %tgt SPC %tgt.getName());
+         //shoot!
+         if(isObject(%aiCon))
+            %aiCon.setAimObject(%tgt, "0 0 1.5");//aim for body mass center upper torso
+         else
+            %this.setAimObject(%tgt, "0 0 1.5");//aim for body mass center upper torso
+            
+         %game.busy = 1;
+         
+         //if the client/player is in passive phase, we want the camera to look towards the active enemy
+         %client = %tgt.teamClient;
+         if(isObject(%client))
+            trackPlayerObject(%client, %tgt, %this);
+            
+         %this.shotThisTurn = 1;
+         %this.schedule(500, "magDump", 8, 0);//give it a little pause so we aim 
+         return;
+      }
+      else
+         echo("Player::activePlayerThink " @ %this SPC %this.getName() @ " can shoot but has no target");
+   }
+   else
+      echo("Player::activePlayerThink " @ %this SPC %this.getName() @ " cannot shoot");
+
+   //do we have somewhere to move to?
+   %energy = %this.getEnergyLevel();
+   if(%energy < 1)
+   {
+      echo("Player::activePlayerThink " @ %this SPC %this.getName() @ " energy empty - quit turn");
+      
+      //we have nowhere to go ... can't shoot ... better end our player phase
+      //give it a little wait so we don't flick through the team too fast
+      %this.turnComplete = 1;//only for Ai/CPU team
+      %game.schedule(1000, "controlNextAiPlayer", %teamAlly, %this);
+      return;
+   }
+   
+   %holdFast = %this.moveTo;
+   if(%holdFast $="")
+   {
+      echo("Player::activePlayerThink " @ %this SPC %this.getName() @ " has nowhere to move to - quit turn");
+      //we have nowhere to go ... can't shoot ... better end our player phase
+      //give it a little wait so we don't flick through the team too fast
+      %this.turnComplete = 1;//only for Ai/CPU team
+      %game.schedule(1000, "controlNextAiPlayer", %teamAlly, %this);
+   }
+   else
+   {
+      echo("Player::activePlayerThink " @ %this SPC %this.getName() @ " wants to move to " @ %holdFast);
+         
+      //set us on our path to our position
+      if(isObject(%aiCon))
+         %path = %aiCon.setPathDestination(%holdFast);
+      else
+         %path = %this.setPathDestination(%holdFast);
+            
+      //if we are not going anywhere, erase our moveTo pos, and think again to see if we can shoot
+      if(%path == false)
+      {
+         %this.moveTo = "";
+         %this.schedule(500, "activePlayerThink");
+      }
+   }
+}
+
+function Player::getClosestEnemyInLOS(%this, %list, %count)
+{
+   %tgt = 0;
+   %dist = 999;
+   %searchMasks = $TypeMasks::TerrainObjectType | $TypeMasks::StaticObjectType | $TypeMasks::PlayerObjectType;
+   %start = %this.getEyePoint();
+   
+   for(%i=0; %i < %count; %i++)
+   {
+      %obj = %list.getKey(%i);
+      if(!isObject(%obj))
+         error("scriptERROR Player::getClosestEnemyInLOS " @ %this SPC %this.getName() @ " enemy team list " @ %list @ " no playerObject at index " @ %i);
+      else
+      {
+         %end = %obj.getEyePoint();//so they better have one
+         %scan = ContainerRayCast(%start, %end, %searchMasks, %this);
+         echo("Player::getClosestEnemyInLOS " @ %this SPC %this.getName() @ " scans for enemy playerObj " @ %obj @ " scan returns " @ %scan);
+         if(%scan)
+         {
+            //check that it is what we are aiming for, or at least an enemy
+            %first = firstWord(%scan);
+            echo("Player::getClosestEnemyInLOS " @ %this SPC %this.getName() @ " scans for enemy playerObj " @ %obj @ " scan hits " @ %first SPC %first.getName() SPC %first.getClassName());
+            
+            if(%first.getType() & $TypeMasks::PlayerObjectType)
+            {
+               if(%first.team != %this.team)//good enough
+               {
+                  %hitPos = getWords(%scan, 1, 3);
+                  %tempDist = VectorDist(%start, %hitPos);
+                  echo("Player::getClosestEnemyInLOS " @ %this SPC %this.getName() @ " this is an enemy team member at range " @ %tempDist);
+                  
+                  if(%tempDist <= %dist)
+                  {
+                     %dist = %tempDist;
+                     %tgt = %first;  
+                     
+                     echo("Player::getClosestEnemyInLOS " @ %this SPC %this.getName() @ " this is the new target " @ %first);
+                  }
+                  else
+                     echo("Player::getClosestEnemyInLOS " @ %this SPC %this.getName() @ " tempDist " @ %tempDist @ " not closer than current distance " @ %dist);
+               }
+            }
+         }
+      }
+   }
+   
+   return %tgt;
+}

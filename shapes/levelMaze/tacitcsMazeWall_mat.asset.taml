@@ -1,0 +1,16 @@
+<MaterialAsset
+    AssetName="tacitcsMazeWall_mat"
+    materialDefinitionName="tacitcsMazeWall_mat">
+    <Material
+        Name="tacitcsMazeWall_mat"
+        mapTo="tacitcsMazeWall">
+        <Material.Stages>
+            <Stages_beginarray
+                DiffuseColor="1 0.378334 0.0835351 1"
+                UseAnisotropic="false"
+                Roughness="0.5"/>
+            <Stages_beginarray
+                DiffuseColor="White"/>
+        </Material.Stages>
+    </Material>
+</MaterialAsset>

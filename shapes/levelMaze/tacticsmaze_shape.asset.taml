@@ -1,0 +1,8 @@
+<ShapeAsset
+    AssetName="tacticsmaze_shape"
+    fileName="@assetFile=@tacticsmaze.fbx"
+    constuctorFileName="@assetFile=@tacticsmaze.tscript"
+    diffuseImposterFileName="@assetFile=@tacticsmaze.fbx_imposter.dds"
+    normalImposterFileName="@assetFile=@tacticsmaze.fbx_imposter_normals.dds"
+    materialSlot0="@asset=tacticsModule:tacitcsMazeWall_mat"
+    originalFilePath="data/tacticsModule/shapes/levelMaze/tacticsmaze.fbx"/>

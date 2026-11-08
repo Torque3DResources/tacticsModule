@@ -1,0 +1,100 @@
+//--- OBJECT WRITE BEGIN ---
+$guiContent = new GuiControl(tacticsStartGui) {
+   extent = "1280 720";
+   profile = "GuiDefaultProfile";
+   tooltipProfile = "GuiToolTipProfile";
+   isContainer = "1";
+
+   new GuiBitmapCtrl() {
+      bitmapAsset = "UI:inactive_overlay_image";
+      extent = "1280 720";
+      horizSizing = "width";
+      vertSizing = "height";
+      profile = "GuiDefaultProfile";
+      tooltipProfile = "GuiToolTipProfile";
+      isContainer = "1";
+
+      new GuiBitmapCtrl() {
+         bitmapAsset = "UI:inactive_overlay_image";
+         color = "122 116 58 255";
+         position = "140 187";
+         extent = "1000 345";
+         horizSizing = "center";
+         vertSizing = "center";
+         profile = "GuiDefaultProfile";
+         tooltipProfile = "GuiToolTipProfile";
+         isContainer = "1";
+
+         new GuiTextCtrl() {
+            Text = "TURN BASED TACTICS DEMO";
+            position = "150 16";
+            extent = "667 32";
+            horizSizing = "center";
+            profile = "GuiBigTextProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiTextCtrl() {
+            Text = "Valkyria Chronicles Inspired Single Player Gameplay (mouse only)";
+            position = "83 53";
+            extent = "800 44";
+            horizSizing = "center";
+            profile = "GuiMenuButtonProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiTextCtrl() {
+            Text = "Select Move or Shoot Mode. Left Click to move or shoot. Right Click to stop and toggle camera mode.";
+            position = "0 108";
+            extent = "1000 44";
+            horizSizing = "center";
+            profile = "GuiMenuButtonProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiTextCtrl() {
+            Text = "Enemies shoot when you move. Only a single burst in Shoot Mode per soldier, per turn.";
+            position = "0 152";
+            extent = "1000 44";
+            horizSizing = "center";
+            profile = "GuiMenuButtonProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiTextCtrl() {
+            Text = "Dead soldiers drop health packs. Get to the end of the level in 20 turns to win.";
+            position = "0 196";
+            extent = "1000 44";
+            horizSizing = "center";
+            profile = "GuiMenuButtonProfile";
+            tooltipProfile = "GuiToolTipProfile";
+         };
+         new GuiBitmapCtrl() {
+            bitmapAsset = "UI:background_image";
+            color = "150 150 150 255";
+            position = "436 259";
+            extent = "128 64";
+            horizSizing = "center";
+            profile = "GuiDefaultProfile";
+            tooltipProfile = "GuiToolTipProfile";
+            isContainer = "1";
+
+            new GuiBitmapCtrl() {
+               bitmapAsset = "UI:background_image";
+               color = "42 84 94 255";
+               position = "4 4";
+               extent = "120 56";
+               profile = "GuiDefaultProfile";
+               tooltipProfile = "GuiToolTipProfile";
+               isContainer = "1";
+
+               new GuiButtonCtrl() {
+                  Text = "Start Game";
+                  extent = "120 56";
+                  horizSizing = "center";
+                  profile = "GuiMenuButtonProfile";
+                  command = "Canvas.popDialog(tacticsStartGui);";
+                  tooltipProfile = "GuiToolTipProfile";
+               };
+            };
+         };
+      };
+   };
+};
+//--- OBJECT WRITE END ---

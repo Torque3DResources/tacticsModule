@@ -1,0 +1,18 @@
+
+function pageMessageHudUp( %val )
+{
+   if ( %val )
+      pageUpMessageHud();
+}
+
+function pageMessageHudDown( %val )
+{
+   if ( %val )
+      pageDownMessageHud();
+}
+
+function resizeMessageHud( %val )
+{
+   if ( %val )
+      cycleMessageHudSize();
+}
